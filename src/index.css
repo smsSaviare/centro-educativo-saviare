@@ -1,0 +1,11 @@
+/* src/index.css */
+
+/* Estas directivas son las que importan los estilos base, de componentes y utilidades de Tailwind CSS */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  Opcional: puedes añadir tus propios estilos CSS globales aquí,
+  pero normalmente todas las clases de estilo van en tus componentes de React
+*/
