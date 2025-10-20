@@ -56,72 +56,37 @@ const RegistrationPage = ({ setCurrentPage, onRegisterSuccess, db, appId }) => {
     setFormData((prevState) => ({ ...prevState, [name]: value }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
+const handleLogin = async (e) => {
+  e.preventDefault();
+  setError("");
+  setLoading(true);
 
-    if (
-      !formData.nombre ||
-      !formData.apellido ||
-      !formData.email ||
-      !formData.password ||
-      !formData.confirmPassword
-    ) {
-      setError("Todos los campos son obligatorios.");
-      setLoading(false);
-      return;
+  if (!email || !password) {
+    setError("Por favor, ingresa tu correo y contraseña.");
+    setLoading(false);
+    return;
+  }
+
+  try {
+    const response = await api.post("/login", {
+      username: email,
+      password: password,
+    });
+
+    if (response.data.access_token) {
+      localStorage.setItem("token", response.data.access_token);
+      onLoginSuccess(response.data);
+    } else {
+      setError("Credenciales inválidas.");
     }
+  } catch (err) {
+    console.error("Error al iniciar sesión:", err);
+    setError(err.response?.data?.msg || "Error de conexión con el servidor.");
+  } finally {
+    setLoading(false);
+  }
+};
 
-    if (formData.password !== formData.confirmPassword) {
-      setError("Las contraseñas no coinciden.");
-      setLoading(false);
-      return;
-    }
-
-    try {
-      if (!db || !appId) {
-        setError(
-          "La base de datos no está disponible. Por favor, inténtalo de nuevo."
-        );
-        setLoading(false);
-        return;
-      }
-
-      const usersRef = collection(db, `artifacts/${appId}/public/data/users`);
-      const q = query(usersRef, where("email", "==", formData.email));
-      const response = await api.get('/courses', {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-      setCourses(response.data);
-
-
-      if (!querySnapshot.empty) {
-        setError("El correo electrónico ya está registrado.");
-        setLoading(false);
-        return;
-      }
-
-      await addDoc(usersRef, {
-        nombre: formData.nombre,
-        apellido: formData.apellido,
-        email: formData.email,
-        password: formData.password,
-        role: formData.role,
-      });
-
-      onRegisterSuccess();
-    } catch (err) {
-      console.error("Error detallado al registrar el usuario:", err);
-      setError(
-        "Ocurrió un error al intentar registrar el usuario. Por favor, inténtalo de nuevo."
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-500 p-4">
