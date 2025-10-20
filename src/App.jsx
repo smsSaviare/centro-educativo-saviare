@@ -1,28 +1,5 @@
 import React, { useState, useEffect } from "react";
-
-// Importaciones de Firebase
-import { initializeApp } from "firebase/app";
-import {
-  getAuth,
-  signInAnonymously,
-  signInWithCustomToken,
-  onAuthStateChanged,
-} from "firebase/auth";
-import {
-  getFirestore,
-  collection,
-  addDoc,
-  setDoc,
-  doc,
-  documentId,
-  updateDoc,
-  deleteDoc,
-  query,
-  where,
-  getDocs,
-  onSnapshot,
-  arrayUnion,
-} from "firebase/firestore";
+import api from './api';
 
 // Componente para la página principal de bienvenida
 const WelcomePage = ({ setCurrentPage }) => {
@@ -113,7 +90,13 @@ const RegistrationPage = ({ setCurrentPage, onRegisterSuccess, db, appId }) => {
 
       const usersRef = collection(db, `artifacts/${appId}/public/data/users`);
       const q = query(usersRef, where("email", "==", formData.email));
-      const querySnapshot = await getDocs(q);
+      const response = await api.get('/courses', {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      setCourses(response.data);
+
 
       if (!querySnapshot.empty) {
         setError("El correo electrónico ya está registrado.");
@@ -283,7 +266,15 @@ const LoginPage = ({ onLoginSuccess, setCurrentPage, db, appId }) => {
         where("email", "==", email),
         where("password", "==", password)
       );
-      const querySnapshot = await getDocs(q);
+
+
+      const response = await api.get('/courses', {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      setCourses(response.data);
+
 
       if (!querySnapshot.empty) {
         const userDoc = querySnapshot.docs[0];
@@ -1816,21 +1807,11 @@ const App = () => {
           typeof __app_id !== "undefined" ? __app_id : "default-app-id";
         setAppId(currentAppId);
 
-        const firebaseConfig = {
-          apiKey: "AIzaSyDK7OjicIcB94q3PRA5RmxBxcRBc1qZzLY",
-          authDomain: "saviare-df1e2.firebaseapp.com",
-          projectId: "saviare-df1e2",
-          storageBucket: "saviare-df1e2.firebasestorage.app",
-          messagingSenderId: "1043459076531",
-          appId: "1:1043459076531:web:efc5d27d88f78d57d79bc6",
-        };
-
         const initialAuthToken =
           typeof __initial_auth_token !== "undefined"
             ? __initial_auth_token
             : null;
 
-        const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const firestoreDb = getFirestore(app);
         setDb(firestoreDb);
